@@ -1,0 +1,36 @@
+name: Hello World App Workflow
+
+on: push
+
+jobs:
+  build:
+    name: Build and Run Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v3
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+
+      - name: Compile with Maven
+        run: mvn compile
+
+      - name: Build Docker Image
+        run: docker build -t devopsimage .
+
+      - name: Stop and Remove Existing Container (if exists)
+        run: |
+          if [ $(docker ps -aq -f name=devopscontainer) ]; then
+            docker rm -f devopscontainer
+          fi
+
+      - name: Run Docker Container
+        run: docker run --name devopscontainer -d devopsimage
+
+      - name: View Docker Logs
+        run: docker logs devopscontainer
